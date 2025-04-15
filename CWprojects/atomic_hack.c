@@ -1,0 +1,1 @@
+// These are needed for the m68k build.// They may exist only in MacOS for PPC's driver support lib.// They are untested and just placeholders, obviously not even trying to be "atomic".void IncrementAtomic(long *v){  (*v)++;}void DecrementAtomic(long *v){  (*v)--;}long BitAndAtomic(long a, long *b){  return a&(*b);}
