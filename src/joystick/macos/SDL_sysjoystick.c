@@ -21,7 +21,18 @@
 */
 #include "SDL_config.h"
 
+
+#define DEBUG_JOYSTICK 1
+
+
 #ifdef SDL_JOYSTICK_MACOS
+
+/* Bit below may or may not work as intended, so left commented out*/
+/*
+#if !kISpDeviceClass_Gamepad
+#define kISpDeviceClass_Gamepad FOUR_CHAR_CODE('gmpd')
+#endif
+*/
 
 /*  SDL stuff  --  "SDL_sysjoystick.c"
     MacOS joystick functions by Frederick Reitberger
@@ -67,9 +78,9 @@ int SDL_SYS_JoystickInit(void)
 {
     static ISpDeviceClass classes[4] = {
         kISpDeviceClass_Joystick,
-    #if kISpDeviceClass_Gamepad
-        kISpDeviceClass_Gamepad,
-    #endif
+    /*#if kISpDeviceClass_Gamepad*/
+        FOUR_CHAR_CODE('gmpd'), /*kISpDeviceClass_Gamepad*/
+    /*#endif*/
         kISpDeviceClass_Wheel,
         0
     };

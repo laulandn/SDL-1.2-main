@@ -21,7 +21,8 @@
 */
 #include "SDL_config.h"
 
-//#define DEBUG_AUDIO 1
+/*#define DEBUG_AUDIO 1
+#define DEBUG_CALLBACK 1*/
 
 #if defined(__APPLE__) && defined(__MACH__)
 #  include <Carbon/Carbon.h>
@@ -107,7 +108,8 @@ AudioBootStrap SNDMGR_bootstrap = {
 	Audio_Available, Audio_CreateDevice
 };
 
-#if defined(TARGET_API_MAC_CARBON) || defined(USE_RYANS_SOUNDCODE)
+/*#if defined(TARGET_API_MAC_CARBON) || defined(USE_RYANS_SOUNDCODE)*/
+#if TARGET_API_MAC_CARBON || defined(USE_RYANS_SOUNDCODE)
 /* This works correctly on Mac OS X */
 
 #pragma options align=power
@@ -120,9 +122,10 @@ static volatile UInt32 running = 0;
 static CmpSoundHeader header;
 static volatile Uint32 fill_me = 0;
 
+/* TARGET_API_MAC_CARBON || USE_RYANS_SOUNDCODE */
 static void mix_buffer(SDL_AudioDevice *audio, UInt8 *buffer)
 {
-#ifdef DEBUG_AUDIO
+#ifdef DEBUG_CALLBACK
    fprintf(stderr,"mix_buffer...\n"); fflush(stderr);
 #endif
    if ( ! audio->paused ) {
@@ -130,30 +133,30 @@ static void mix_buffer(SDL_AudioDevice *audio, UInt8 *buffer)
         SDL_mutexP(audio->mixer_lock);
 #endif
         if ( audio->convert.needed ) {
-#ifdef DEBUG_AUDIO
+#ifdef DEBUG_CALLBACK
             fprintf(stderr,"going to audio->convert...\n"); fflush(stderr);
 #endif
             audio->spec.callback(audio->spec.userdata,
                     (Uint8 *)audio->convert.buf,audio->convert.len);
-#ifdef DEBUG_AUDIO
+#ifdef DEBUG_CALLBACK
             fprintf(stderr,"going to SDL_ConvertAudio...\n"); fflush(stderr);
 #endif
             SDL_ConvertAudio(&audio->convert);
-#ifdef DEBUG_AUDIO
+#ifdef DEBUG_CALLBACK
             fprintf(stderr,"After SDL_ConvertAudio...\n"); fflush(stderr);
 #endif
             if ( audio->convert.len_cvt != audio->spec.size ) {
                 /* Uh oh... probably crashes here */;
-#ifdef DEBUG_AUDIO
+#ifdef DEBUG_CALLBACK
                 fprintf(stderr,"Uh oh... probably crashes here...\n"); fflush(stderr);
 #endif
             }
-#ifdef DEBUG_AUDIO
+#ifdef DEBUG_CALLBACK
             fprintf(stderr,"After SDL_memcpy...\n"); fflush(stderr);
 #endif
             SDL_memcpy(buffer, audio->convert.buf, audio->convert.len_cvt);
         } else {
-#ifdef DEBUG_AUDIO
+#ifdef DEBUG_CALLBACK
             fprintf(stderr,"After audio->spec.callback...\n"); fflush(stderr);
 #endif
             audio->spec.callback(audio->spec.userdata, buffer, audio->spec.size);
@@ -163,23 +166,32 @@ static void mix_buffer(SDL_AudioDevice *audio, UInt8 *buffer)
 #endif
     }
 
-#ifdef DEBUG_AUDIO
+#ifdef DEBUG_CALLBACK
     fprintf(stderr,"Going to DecrementAtomic...\n"); fflush(stderr);
 #endif
     DecrementAtomic((SInt32 *) &need_to_mix);
-#ifdef DEBUG_AUDIO
+#ifdef DEBUG_CALLBACK
     fprintf(stderr,"mix_buffer done...\n"); fflush(stderr);
 #endif
 }
 
+/* TARGET_API_MAC_CARBON || USE_RYANS_SOUNDCODE */
 static void Mac_LockAudio(_THIS)
 {
+#ifdef DEBUG_CALLBACK
+    fprintf(stderr,"Mac_LockAudio (RYAN)...\n"); fflush(stderr);
+#endif
     IncrementAtomic((SInt32 *) &audio_is_locked);
 }
 
+/* TARGET_API_MAC_CARBON || USE_RYANS_SOUNDCODE */
 static void Mac_UnlockAudio(_THIS)
 {
     SInt32 oldval;
+
+#ifdef DEBUG_CALLBACK
+    fprintf(stderr,"Mac_UnlockAudio (RYAN)...\n"); fflush(stderr);
+#endif
          
     oldval = DecrementAtomic((SInt32 *) &audio_is_locked);
     if ( oldval != 1 )  /* != 1 means audio is still locked. */
@@ -196,13 +208,25 @@ static void Mac_UnlockAudio(_THIS)
     }
 }
 
+/* TARGET_API_MAC_CARBON || USE_RYANS_SOUNDCODE */
 static void callBackProc (SndChannel *chan, SndCommand *cmd_passed ) {
    UInt32 play_me;
    SndCommand cmd; 
    SDL_AudioDevice *audio = (SDL_AudioDevice *)chan->userInfo;
 
-#ifdef DEBUG_AUDIO
-   fprintf(stderr,"In callBackProc...\n"); fflush(stderr);
+#ifdef AUDIO_HACK
+  chan=lchan; cmd_passed=lcmd_passed;
+#endif
+
+#ifdef DEBUG_CALLBACK
+   fprintf(stderr,"In callBackProc chan=%08x cmd_passed=%08x...\n",(long)chan,(long)cmd_passed); fflush(stderr);
+   fprintf(stderr,"cmd->cmd=%08x param1=%08x param2=%08x\n",cmd_passed->cmd,cmd_passed->param1,cmd_passed->param2); fflush(stderr);
+#endif
+   if(cmd_passed->cmd!=0xd) {
+     fprintf(stderr,"cmd wasn't 0xd!\n"); fflush(stderr);
+     exit(0);
+   }
+#ifdef DEBUG_CALLBACK
    fprintf(stderr,"Going to IncrementAtomic...\n"); fflush(stderr);
 #endif
    IncrementAtomic((SInt32 *) &need_to_mix);
@@ -219,15 +243,15 @@ static void callBackProc (SndChannel *chan, SndCommand *cmd_passed ) {
    cmd.cmd = bufferCmd;
    cmd.param1 = 0; 
    cmd.param2 = (long)&header;
-#ifdef DEBUG_AUDIO
+#ifdef DEBUG_CALLBACK
    fprintf(stderr,"Going to SndDoCommand #1...\n"); fflush(stderr);
-   fprintf(stderr,"buffer is %0x8, header is %0x8\n",(long)buffer,(long)&header); fflush(stderr);
+   fprintf(stderr,"buffer is %08x, header is %08x\n",(long)buffer,(long)&header); fflush(stderr);
 #endif
    SndDoCommand (chan, &cmd, 0);
 
-#ifdef DEBUG_AUDIO
+#ifdef DEBUG_CALLBACK
    fprintf(stderr,"Going to memset...\n"); fflush(stderr);
-   //fprintf(stderr,"buffer[fill_me] is %0x8, audio->spec.size is %0x8\n",(long)buffer[fill_me],(long)audio->spec.size); fflush(stderr);
+   fprintf(stderr,"fill_me is %08x, audio->spec.size is %08x\n",(long)fill_me,(long)audio->spec.size); fflush(stderr);
 #endif
    memset (buffer[fill_me], 0, audio->spec.size);
 
@@ -235,19 +259,19 @@ static void callBackProc (SndChannel *chan, SndCommand *cmd_passed ) {
     * if audio device isn't locked, mix the next buffer to be queued in
     *  the memory block that just finished playing.
     */
-#ifdef DEBUG_AUDIO
+#ifdef DEBUG_CALLBACK
    fprintf(stderr,"Going to BitAndAtomic...\n"); fflush(stderr);
 #endif
    if ( ! BitAndAtomic(0xFFFFFFFF, (UInt32 *) &audio_is_locked) ) {
-#ifdef DEBUG_AUDIO
+#ifdef DEBUG_CALLBACK
       fprintf(stderr,"Going to mix_buffer...\n"); fflush(stderr);
 #endif
-#ifdef DEBUG_AUDIO
-      fprintf(stderr,"audio is %0x8, buffer[fill_me] is %0x8\n",(long)audio,(long)&buffer[fill_me]); fflush(stderr);
+#ifdef DEBUG_CALLBACK
+      fprintf(stderr,"audio is %08x, buffer[fill_me] is %08x\n",(long)audio,(long)&buffer[fill_me]); fflush(stderr);
 #endif
       mix_buffer (audio, buffer[fill_me]);
    } 
-#ifdef DEBUG_AUDIO
+#ifdef DEBUG_CALLBACK
    fprintf(stderr,"After BitAndAtomic...\n"); fflush(stderr);
 #endif
 
@@ -257,14 +281,17 @@ static void callBackProc (SndChannel *chan, SndCommand *cmd_passed ) {
       cmd.param1 = 0;
       cmd.param2 = play_me;
    
-#ifdef DEBUG_AUDIO
-      fprintf(stderr,"Going to SndDoCommand #1...\n"); fflush(stderr);
+#ifdef DEBUG_CALLBACK
+      fprintf(stderr,"Going to SndDoCommand #2...\n"); fflush(stderr);
 #endif
       SndDoCommand (chan, &cmd, 0);
    }
+#ifdef DEBUG_CALLBACK
+   fprintf(stderr,"callBackProc done.\n"); fflush(stderr);
+#endif
 }
 
-/* For non-MacOS X */
+/* TARGET_API_MAC_CARBON || USE_RYANS_SOUNDCODE */
 static int Mac_OpenAudio(_THIS, SDL_AudioSpec *spec) {
 
    SndCallBackUPP callback;
@@ -273,7 +300,7 @@ static int Mac_OpenAudio(_THIS, SDL_AudioSpec *spec) {
    long initOptions;
       
 #ifdef DEBUG_AUDIO
-   fprintf(stderr,"Mac_OpenAudio...\n"); fflush(stderr);
+   fprintf(stderr,"Mac_OpenAudio (RYANS) this=%08x spec=%08x...\n",(long)this,(long)spec); fflush(stderr);
 #endif
    /* Very few conversions are required, but... */
     switch (spec->format) {
@@ -292,7 +319,7 @@ static int Mac_OpenAudio(_THIS, SDL_AudioSpec *spec) {
     /* initialize bufferCmd header */
     memset (&header, 0, sizeof(header));
 #ifdef DEBUG_AUDIO
-    fprintf(stderr,"Going to NewSndCallBackUPP...\n"); fflush(stderr);
+    fprintf(stderr,"Going to NewSndCallBackUPP callBackProc=%08x...\n",(long)callBackProc); fflush(stderr);
 #endif
     callback = (SndCallBackUPP) NewSndCallBackUPP (callBackProc);
 #ifdef DEBUG_AUDIO
@@ -323,7 +350,10 @@ static int Mac_OpenAudio(_THIS, SDL_AudioSpec *spec) {
 #endif
     /* allocate 2 buffers */
     for (i=0; i<2; i++) {
-       buffer[i] = (UInt8*)malloc (sizeof(UInt8) * spec->size);
+      buffer[i] = (UInt8*)malloc (sizeof(UInt8) * spec->size);
+#ifdef DEBUG_AUDIO
+      fprintf(stderr,"buffer[%d]=%08x\n",i,(long)buffer[i]); 
+#endif
       if (buffer[i] == NULL) {
          SDL_OutOfMemory();
          return (-1);
@@ -332,58 +362,67 @@ static int Mac_OpenAudio(_THIS, SDL_AudioSpec *spec) {
    }
    
 #ifdef DEBUG_AUDIO
-    fprintf(stderr,"Going to alloc channel...\n"); fflush(stderr);
+    fprintf(stderr,"Going to alloc th_channel (%d bytes)...\n",sizeof(*th_channel)); fflush(stderr);
 #endif
    /* Create the sound manager channel */
-    channel = (SndChannelPtr)SDL_malloc(sizeof(*channel));
-    if ( channel == NULL ) {
+    th_channel = (SndChannelPtr)SDL_malloc(sizeof(*th_channel));
+    if ( th_channel == NULL ) {
         SDL_OutOfMemory();
         return(-1);
     }
+    /*memset(channel,0,sizeof(*channel));*/
+#ifdef DEBUG_AUDIO
+      fprintf(stderr,"th_channel=%08x &th_channel=%08x\n",(long)th_channel,(long)&th_channel); 
+#endif
     if ( spec->channels >= 2 ) {
         initOptions = initStereo;
     } else {
         initOptions = initMono;
     }
-    channel->userInfo = (long)this;
-    channel->qLength = 128;
+    th_channel->userInfo = (long)this;
+    th_channel->qLength = 128;
 #ifdef DEBUG_AUDIO
     fprintf(stderr,"Going to SndNewChannel...\n"); fflush(stderr);
 #endif
-    if ( SndNewChannel(&channel, sampledSynth, initOptions, callback) != noErr ) {
+    if ( SndNewChannel(&th_channel, sampledSynth, initOptions, callback) != noErr ) {
 #ifdef DEBUG_AUDIO
         fprintf(stderr,"Unable to create audio channel\n"); fflush(stderr);
 #endif
         SDL_SetError("Unable to create audio channel");
-        SDL_free(channel);
-        channel = NULL;
+        SDL_free(th_channel);
+        th_channel = NULL;
         return(-1);
     }
    
-#ifdef DEBUG_AUDIO
-   fprintf(stderr,"Going to SndDoCommand...\n"); fflush(stderr);
-#endif
    /* start playback */
    {
       SndCommand cmd;
       cmd.cmd = callBackCmd;
+      cmd.param1 = 0;
       cmd.param2 = 0;
       running = 1;
-      SndDoCommand (channel, &cmd, 0);
+#ifdef DEBUG_AUDIO
+   fprintf(stderr,"Going to SndDoCommand &cmd=%08x...\n",&cmd); fflush(stderr);
+#endif
+      SndDoCommand (th_channel, &cmd, 0);
    }
-   
+
+#ifdef DEBUG_AUDIO
+   fprintf(stderr,"Mac_OpenAudio done.\n"); fflush(stderr);
+#endif
    return 1;
 }
 
+/* TARGET_API_MAC_CARBON || USE_RYANS_SOUNDCODE */
 static void Mac_CloseAudio(_THIS) {
    
    int i;
    
    running = 0;
    
-   if (channel) {
-      SndDisposeChannel (channel, true);
-      channel = NULL;
+   if (th_channel) {
+      SndDisposeChannel (th_channel, true);
+      th_channel = NULL;
    }
    
     for ( i=0; i<2; ++i ) {
@@ -396,17 +435,26 @@ static void Mac_CloseAudio(_THIS) {
 
 #else /* !TARGET_API_MAC_CARBON && !USE_RYANS_SOUNDCODE */
 
+/* !TARGET_API_MAC_CARBON && !USE_RYANS_SOUNDCODE */
 static void Mac_LockAudio(_THIS)
 {
+#ifdef DEBUG_CALLBACK
+    fprintf(stderr,"Mac_LockAudio (!RYAN)...\n"); fflush(stderr);
+#endif
     /* no-op. */
 }
 
+/* !TARGET_API_MAC_CARBON && !USE_RYANS_SOUNDCODE */
 static void Mac_UnlockAudio(_THIS)
 {
+#ifdef DEBUG_CALLBACK
+    fprintf(stderr,"Mac_UnlockAudio (!RYAN)...\n"); fflush(stderr);
+#endif
     /* no-op. */
 }
 
 
+/* !TARGET_API_MAC_CARBON && !USE_RYANS_SOUNDCODE */
 /* This function is called by Sound Manager when it has exhausted one of
    the buffers, so we'll zero it to silence and fill it with audio if
    we're not paused.
@@ -414,10 +462,11 @@ static void Mac_UnlockAudio(_THIS)
 static pascal
 void sndDoubleBackProc (SndChannelPtr chan, SndDoubleBufferPtr newbuf)
 {
-#ifdef DEBUG_AUDIO
+    SDL_AudioDevice *audio = (SDL_AudioDevice *)newbuf->dbUserInfo[0];
+
+#ifdef DEBUG_CALLBACK
     fprintf(stderr,"In sndDoubleBackProc...\n"); fflush(stderr);
 #endif
-    SDL_AudioDevice *audio = (SDL_AudioDevice *)newbuf->dbUserInfo[0];
 
     /* If audio is quitting, don't do anything */
     if ( ! audio->enabled ) {
@@ -426,33 +475,61 @@ void sndDoubleBackProc (SndChannelPtr chan, SndDoubleBufferPtr newbuf)
     memset (newbuf->dbSoundData, 0, audio->spec.size);
     newbuf->dbNumFrames = audio->spec.samples;
     if ( ! audio->paused ) {
+#ifdef DEBUG_CALLBACK
+    fprintf(stderr,"(audio not paused)\n"); fflush(stderr);
+#endif
         if ( audio->convert.needed ) {
+#ifdef DEBUG_CALLBACK
+    fprintf(stderr,"(audio->convert.needed)\n"); fflush(stderr);
+#endif
+#ifdef DEBUG_CALLBACK
+    fprintf(stderr,"Going to audio->spec.callback()...\n"); fflush(stderr);
+#endif
             audio->spec.callback(audio->spec.userdata,
                 (Uint8 *)audio->convert.buf,audio->convert.len);
+#ifdef DEBUG_CALLBACK
+    fprintf(stderr,"Going to SDL_ConvertAudio()...\n"); fflush(stderr);
+#endif
             SDL_ConvertAudio(&audio->convert);
-#if 0
             if ( audio->convert.len_cvt != audio->spec.size ) {
-                /* Uh oh... probably crashes here */;
+                /* Uh oh... probably crashes here */
+                fprintf(stderr,"/* Uh oh... probably crashes here */\n");
+                exit(0);
             }
+#ifdef DEBUG_CALLBACK
+    fprintf(stderr,"Going to SDL_memcpy()...\n"); fflush(stderr);
 #endif
             SDL_memcpy(newbuf->dbSoundData, audio->convert.buf,
                             audio->convert.len_cvt);
         } else {
+#ifdef DEBUG_CALLBACK
+    fprintf(stderr,"Going to audio->spec.callback()...\n"); fflush(stderr);
+#endif
             audio->spec.callback(audio->spec.userdata,
                 (Uint8 *)newbuf->dbSoundData, audio->spec.size);
         }
     }
+    else {
+#ifdef DEBUG_CALLBACK
+    fprintf(stderr,"(audio paused)\n"); fflush(stderr);
+#endif
+    }
     newbuf->dbFlags    |= dbBufferReady;
-#ifdef DEBUG_AUDIO
+#ifdef DEBUG_CALLBACK
     fprintf(stderr,"sndDoubleBackProc done.\n"); fflush(stderr);
 #endif
 }
 
+/* !TARGET_API_MAC_CARBON && !USE_RYANS_SOUNDCODE */
 static int DoubleBufferAudio_Available(void)
 {
     int available;
     NumVersion sndversion;
     long response;
+
+#ifdef DEBUG_AUDIO
+    fprintf(stderr,"DoubleBufferAudio_Available...\n"); fflush(stderr);
+#endif
 
     available = 0;
     sndversion = SndSoundManagerVersion();
@@ -460,6 +537,9 @@ static int DoubleBufferAudio_Available(void)
         if ( Gestalt(gestaltSoundAttr, &response) == noErr ) {
             if ( (response & (1 << gestaltSndPlayDoubleBuffer)) ) {
                 available = 1;
+#ifdef DEBUG_AUDIO
+    fprintf(stderr,"Yes, can doubleBuffer.\n"); fflush(stderr);
+#endif
             }
 #ifdef DEBUG_AUDIO
             else { fprintf(stderr,"No gestaltSndPlayDoubleBuffer.\n"); fflush(stderr); }
@@ -469,6 +549,9 @@ static int DoubleBufferAudio_Available(void)
         if ( Gestalt(gestaltSoundAttr, &response) == noErr ) {
             if ( (response & (1 << gestaltHasASC)) ) {
                 available = 1;
+#ifdef DEBUG_AUDIO
+    fprintf(stderr,"Yes, have ASC.\n"); fflush(stderr);
+#endif
             }
 #ifdef DEBUG_AUDIO
             else { fprintf(stderr,"No gestaltHasASC.\n");  fflush(stderr); }
@@ -478,24 +561,25 @@ static int DoubleBufferAudio_Available(void)
     return(available);
 }
 
+/* !TARGET_API_MAC_CARBON && !USE_RYANS_SOUNDCODE */
 static void Mac_CloseAudio(_THIS)
 {
     int i;
 
-    if ( channel != NULL ) {
+    if ( th_channel != NULL ) {
         /* Clean up the audio channel */
-        SndDisposeChannel(channel, true);
-        channel = NULL;
+        SndDisposeChannel(th_channel, true);
+        th_channel = NULL;
     }
     for ( i=0; i<2; ++i ) {
-        if ( audio_buf[i] ) {
-            SDL_free(audio_buf[i]);
-            audio_buf[i] = NULL;
+        if ( th_audio_buf[i] ) {
+            SDL_free(th_audio_buf[i]);
+            th_audio_buf[i] = NULL;
         }
     }
 }
 
-/* For MacOS X */
+/* !TARGET_API_MAC_CARBON && !USE_RYANS_SOUNDCODE */
 static int Mac_OpenAudio(_THIS, SDL_AudioSpec *spec)
 {
     SndDoubleBufferHeader2 audio_dbh;
@@ -503,6 +587,10 @@ static int Mac_OpenAudio(_THIS, SDL_AudioSpec *spec)
     long initOptions;
     int sample_bits;
     SndDoubleBackUPP doubleBackProc;
+    
+#ifdef DEBUG_AUDIO
+   fprintf(stderr,"Mac_OpenAudio (!RYANS) this=%08x spec=%08x...\n",(long)this,(long)spec); fflush(stderr);
+#endif
 
     /* Check to make sure double-buffered audio is available */
     if ( ! DoubleBufferAudio_Available() ) {
@@ -526,6 +614,9 @@ static int Mac_OpenAudio(_THIS, SDL_AudioSpec *spec)
 
     /* initialize the double-back header */
     SDL_memset(&audio_dbh, 0, sizeof(audio_dbh));
+#ifdef DEBUG_AUDIO
+    fprintf(stderr,"Going to NewSndDoubleBackProc sndDoubleBackProc=%08x...\n",(long)sndDoubleBackProc); fflush(stderr);
+#endif
     doubleBackProc = NewSndDoubleBackProc (sndDoubleBackProc);
     sample_bits = spec->size / spec->samples / spec->channels * 8;
     
@@ -543,48 +634,70 @@ static int Mac_OpenAudio(_THIS, SDL_AudioSpec *spec)
         audio_dbh.dbhFormat = k16BitLittleEndianFormat;
     }
 
+#ifdef DEBUG_AUDIO
+    fprintf(stderr,"Going to alloc buffers...\n"); fflush(stderr);
+#endif
     /* allocate the 2 double-back buffers */
     for ( i=0; i<2; ++i ) {
-        audio_buf[i] = SDL_calloc(1, sizeof(SndDoubleBuffer)+spec->size);
-        if ( audio_buf[i] == NULL ) {
+        th_audio_buf[i] = SDL_calloc(1, sizeof(SndDoubleBuffer)+spec->size);
+        if ( th_audio_buf[i] == NULL ) {
             SDL_OutOfMemory();
             return(-1);
         }
-        audio_buf[i]->dbNumFrames = spec->samples;
-        audio_buf[i]->dbFlags = dbBufferReady;
-        audio_buf[i]->dbUserInfo[0] = (long)this;
-        audio_dbh.dbhBufferPtr[i] = audio_buf[i];
+        th_audio_buf[i]->dbNumFrames = spec->samples;
+        th_audio_buf[i]->dbFlags = dbBufferReady;
+        th_audio_buf[i]->dbUserInfo[0] = (long)this;
+#ifdef DEBUG_AUDIO
+      fprintf(stderr,"th_audio_buf[%d]=%08x\n",i,(long)th_audio_buf[i]); 
+#endif
+        audio_dbh.dbhBufferPtr[i] = th_audio_buf[i];
     }
 
+#ifdef DEBUG_AUDIO
+    fprintf(stderr,"Going to alloc th_channel (%d bytes)...\n",sizeof(*th_channel)); fflush(stderr);
+#endif
     /* Create the sound manager channel */
-    channel = (SndChannelPtr)SDL_malloc(sizeof(*channel));
-    if ( channel == NULL ) {
+    th_channel = (SndChannelPtr)SDL_malloc(sizeof(*th_channel));
+    if ( th_channel == NULL ) {
         SDL_OutOfMemory();
         return(-1);
     }
+#ifdef DEBUG_AUDIO
+      fprintf(stderr,"th_channel=%08x &th_channel=%08x\n",(long)th_channel,(long)&th_channel); 
+#endif
     if ( spec->channels >= 2 ) {
         initOptions = initStereo;
     } else {
         initOptions = initMono;
     }
-    channel->userInfo = 0;
-    channel->qLength = 128;
-    if ( SndNewChannel(&channel, sampledSynth, initOptions, 0L) != noErr ) {
+    th_channel->userInfo = 0;
+    th_channel->qLength = 128;
+#ifdef DEBUG_AUDIO
+    fprintf(stderr,"Going to SndNewChannel...\n"); fflush(stderr);
+#endif
+    if ( SndNewChannel(&th_channel, sampledSynth, initOptions, 0L) != noErr ) {
 #ifdef DEBUG_AUDIO
         fprintf(stderr,"Unable to create audio channel\n"); fflush(stderr);
 #endif
         SDL_SetError("Unable to create audio channel");
-        SDL_free(channel);
-        channel = NULL;
+        SDL_free(th_channel);
+        th_channel = NULL;
         return(-1);
     }
  
+#ifdef DEBUG_AUDIO
+   fprintf(stderr,"Going to SndPlayDoubleBuffer...\n"); fflush(stderr);
+#endif
     /* Start playback */
-    if ( SndPlayDoubleBuffer(channel, (SndDoubleBufferHeaderPtr)&audio_dbh)
+    if ( SndPlayDoubleBuffer(th_channel, (SndDoubleBufferHeaderPtr)&audio_dbh)
                                 != noErr ) {
         SDL_SetError("Unable to play double buffered audio");
         return(-1);
     }
+
+#ifdef DEBUG_AUDIO
+   fprintf(stderr,"Mac_OpenAudio done.\n"); fflush(stderr);
+#endif
     
     return 1;
 }

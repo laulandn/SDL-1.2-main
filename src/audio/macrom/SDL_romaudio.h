@@ -27,7 +27,9 @@
 #include "../SDL_sysaudio.h"
 
 /* This is Ryan's improved MacOS sound code, with locking support */
+#if powerc
 #define USE_RYANS_SOUNDCODE
+#endif
 
 /* Hidden "this" pointer for the video functions */
 #define _THIS	SDL_AudioDevice *this
@@ -35,7 +37,8 @@
 struct SDL_PrivateAudioData {
 	/* Sound manager audio channel */
 	SndChannelPtr channel;
-#if defined(TARGET_API_MAC_CARBON) || defined(USE_RYANS_SOUNDCODE)
+/*#if defined(TARGET_API_MAC_CARBON) || defined(USE_RYANS_SOUNDCODE)*/
+#if TARGET_API_MAC_CARBON || defined(USE_RYANS_SOUNDCODE)
 	/* FIXME: Add Ryan's static data here */
 #else
 	/* Double buffering variables */
@@ -44,7 +47,7 @@ struct SDL_PrivateAudioData {
 };
 
 /* Old variable names */
-#define channel		(this->hidden->channel)
-#define audio_buf	(this->hidden->audio_buf)
+#define th_channel		(this->hidden->channel)
+#define th_audio_buf	(this->hidden->audio_buf)
 
 #endif /* _SDL_romaudio_h */

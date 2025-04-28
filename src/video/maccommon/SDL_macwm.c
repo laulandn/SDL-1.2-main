@@ -115,7 +115,12 @@ static OSErr GetGammaTable (GDHandle hGD, GammaTblPtr * ppTableGammaOut)
 	cParam.csCode = cscGetGamma;									/* Get Gamma commnd to device */
 	*(Ptr *)cParam.csParam = (Ptr) &DeviceGammaRec;					/* record for gamma */
 
+	/* "PBStatusSync" is not really a part of Carbon per se, so we add this check for now */
+	#if !TARGET_API_MAC_CARBON
 	err = PBStatusSync( (ParmBlkPtr)&cParam );						/* get gamma */
+	#else
+	err = noErr;
+	#endif
 	
 	*ppTableGammaOut = (GammaTblPtr)(DeviceGammaRec.csGTable);		/* pull table out of record */
 	
@@ -258,7 +263,11 @@ static void RestoreDeviceGamma (GDHandle hGD, Ptr pGammaTable)
 	{
 		gameRecRestore.csGTable = pGammaTable;						/* setup restore record */
 		csPtr = (Ptr) &gameRecRestore;
+		
+		/* "Control" is not really a part of Carbon per se, so we add this check for now */
+	  #if !TARGET_API_MAC_CARBON
 		err = Control((**hGD).gdRefNum, cscSetGamma, (Ptr) &csPtr);	/* restore gamma */
+    #endif
 
 		if ((noErr == err) && (8 == (**(**hGD).gdPMap).pixelSize))	/* if successful and on an 8 bit device */
 		{
@@ -268,7 +277,10 @@ static void RestoreDeviceGamma (GDHandle hGD, Ptr pGammaTable)
 			setEntriesRec.csCount = (**hCTabDeviceColors).ctSize;
 			csPtr = (Ptr) &setEntriesRec;
 			
+		  /* "Control" is not really a part of Carbon per se, so we add this check for now */
+	    #if !TARGET_API_MAC_CARBON
 			err = Control((**hGD).gdRefNum, cscSetEntries, (Ptr) &csPtr); /* SetEntries in CLUT */
+			#endif
 		}
 	}
 }
@@ -353,7 +365,13 @@ static Boolean SetDeviceGammaRampGD (GDHandle hGD, Ptr pRamp)
 				/* set gamma */
 				gameRecRestore.csGTable = (Ptr) pTableGammaNew;				/* setup restore record */
 				csPtr = (Ptr) &gameRecRestore;
+				
+				/* "Control" is not really a part of Carbon per se, so we add this check for now */
+				#if !TARGET_API_MAC_CARBON
 				err = Control((**hGD).gdRefNum, cscSetGamma, (Ptr) &csPtr);	/* restore gamma (note, display drivers may delay returning from this until VBL) */
+				#else
+				err = noErr;
+				#endif
 				
 				if ((8 == (**(**hGD).gdPMap).pixelSize) && (noErr == err))	/* if successful and on an 8 bit device */
 				{
@@ -362,7 +380,12 @@ static Boolean SetDeviceGammaRampGD (GDHandle hGD, Ptr pRamp)
 					setEntriesRec.csStart = 0;
 					setEntriesRec.csCount = (**hCTabDeviceColors).ctSize;
 					csPtr = (Ptr) &setEntriesRec;
+		      /* "Control" is not really a part of Carbon per se, so we add this check for now */
+	        #if !TARGET_API_MAC_CARBON
 					err = Control((**hGD).gdRefNum, cscSetEntries, (Ptr) &csPtr);	/* SetEntries in CLUT */
+				  #else
+				  err = noErr;
+					#endif
 				}
 				DisposeGammaTable ((Ptr) pTableGammaNew);					/* dump table */
 				if (noErr == err)
@@ -374,7 +397,12 @@ static Boolean SetDeviceGammaRampGD (GDHandle hGD, Ptr pRamp)
 	{
 		gameRecRestore.csGTable = (Ptr) NULL;								/* setup restore record */
 		csPtr = (Ptr) &gameRecRestore;
+		/* "Control" is not really a part of Carbon per se, so we add this check for now */
+	  #if !TARGET_API_MAC_CARBON
 		err = Control((**hGD).gdRefNum, cscSetGamma, (Ptr) &csPtr);			/* restore gamma */
+	  #else
+		err = noErr;
+		#endif
 		
 		if ((8 == (**(**hGD).gdPMap).pixelSize) && (noErr == err))			/* if successful and on an 8 bit device */
 		{
@@ -383,7 +411,12 @@ static Boolean SetDeviceGammaRampGD (GDHandle hGD, Ptr pRamp)
 			setEntriesRec.csStart = 0;
 			setEntriesRec.csCount = (**hCTabDeviceColors).ctSize;
 			csPtr = (Ptr) &setEntriesRec;
+		  /* "Control" is not really a part of Carbon per se, so we add this check for now */
+	    #if !TARGET_API_MAC_CARBON
 			err = Control((**hGD).gdRefNum, cscSetEntries, (Ptr) &csPtr);	/* SetEntries in CLUT */
+		  #else
+			err = noErr;
+			#endif
 		}
 		if (noErr == err)
 			return true;

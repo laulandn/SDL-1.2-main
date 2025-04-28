@@ -39,9 +39,7 @@ typedef SInt64	int64_t;
 typedef UInt64	uint64_t;
 typedef unsigned long	uintptr_t;
 
-#if powerc
 #define SDL_HAS_64BIT_TYPE	1
-#endif
 
 /* Useful headers */
 #define HAVE_STDIO_H	1
@@ -56,7 +54,7 @@ typedef unsigned long	uintptr_t;
 #define HAVE_CALLOC	1
 #define HAVE_REALLOC	1
 #define HAVE_FREE	1
-#define HAVE_ALLOCA	1
+/*#define HAVE_ALLOCA	1*/
 #define HAVE_ABS	1
 #define HAVE_MEMSET	1
 #define HAVE_MEMCPY	1
@@ -76,9 +74,7 @@ typedef unsigned long	uintptr_t;
 #define HAVE_SSCANF	1
 
 /* Enable various audio drivers */
-#if powerc
 #define SDL_AUDIO_DRIVER_SNDMGR	1
-#endif
 #define SDL_AUDIO_DRIVER_DISK	1
 #define SDL_AUDIO_DRIVER_DUMMY	1
 
@@ -93,7 +89,7 @@ typedef unsigned long	uintptr_t;
 #if TARGET_API_MAC_CARBON
 #define SDL_JOYSTICK_DUMMY	1
 #else
-#if powerc
+#if __ppc__
 #define SDL_JOYSTICK_MACOS	1
 #else
 #define SDL_JOYSTICK_DUMMY	1
@@ -101,11 +97,7 @@ typedef unsigned long	uintptr_t;
 #endif
 
 /* Enable various shared object loading systems */
-#if powerc
 #define SDL_LOADSO_MACOS	1
-#else
-#define SDL_LOADSO_DISABLED	1
-#endif
 
 /* Enable various threading systems */
 #define SDL_THREADS_DISABLED	1
@@ -115,14 +107,14 @@ typedef unsigned long	uintptr_t;
 
 /* Enable various video drivers */
 #define SDL_VIDEO_DRIVER_DUMMY	1
-#if powerc
+#if __ppc__
 #define SDL_VIDEO_DRIVER_DRAWSPROCKET	1
 #endif
 #define SDL_VIDEO_DRIVER_TOOLBOX	1
 
 /* Enable OpenGL support */
-#if powerc
-#define SDL_VIDEO_OPENGL	1
+#if __ppc__
+/*#define SDL_VIDEO_OPENGL	1*/
 #endif
 
 #endif /* _SDL_config_macos_h */

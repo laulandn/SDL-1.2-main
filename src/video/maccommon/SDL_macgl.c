@@ -32,7 +32,11 @@
 int Mac_GL_Init(_THIS)
 {
 #if SDL_VIDEO_OPENGL
+#ifdef MESA
+    AGLPixelFmt format;
+#else
 	AGLPixelFormat format;
+#endif
    	int i = 0;
 	GLint attributes [ 26 ]; /* 26 is max possible in this setup */
 	GLboolean noerr;
@@ -96,14 +100,24 @@ int Mac_GL_Init(_THIS)
 	}	
 #endif
 	if ( this->gl_config.accelerated > 0 ) {
+#ifdef MESA
+#else
 		attributes[i++] = AGL_ACCELERATED;
 		attributes[i++] = AGL_NO_RECOVERY;
+#endif
 	}
 
+#ifdef MESA
+#else
 	attributes[i++] = AGL_ALL_RENDERERS;
+#endif
 	attributes[i]	= AGL_NONE;
 
-	format = aglChoosePixelFormat(NULL, 0, attributes);
+	format =
+#ifdef MESA
+    (AGLPixelFmt *)
+#endif
+	aglChoosePixelFormat(NULL, 0, attributes);
 	if ( format == NULL ) {
 		SDL_SetError("Couldn't match OpenGL desired format");
 		return(-1);
@@ -162,7 +176,12 @@ int Mac_GL_MakeCurrent(_THIS)
 
 void Mac_GL_SwapBuffers(_THIS)
 {
-	aglSwapBuffers(glContext);
+	aglSwapBuffers(
+#ifdef MESA
+#else
+	glContext
+#endif
+	);
 }
 
 int Mac_GL_LoadLibrary(_THIS, const char *location)

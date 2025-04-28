@@ -451,9 +451,11 @@ SDL_AudioSpec * SDL_LoadWAV_RW (SDL_RWops *src, int freesrc,
 	/* FMT chunk */
 	WaveFMT *format = NULL;
 
+//fprintf(stderr,"SDL_LoadWAV_RW...\n");
 	/* Make sure we are passed a valid data source */
 	was_error = 0;
 	if ( src == NULL ) {
+	    fprintf(stderr,"src was null\n");
 		was_error = 1;
 		goto done;
 	}
@@ -470,6 +472,7 @@ SDL_AudioSpec * SDL_LoadWAV_RW (SDL_RWops *src, int freesrc,
 	}
 	if ( (RIFFchunk != RIFF) || (WAVEmagic != WAVE) ) {
 		SDL_SetError("Unrecognized file type (not WAVE)");
+		fprintf(stderr,"not WaV!\n");
 		was_error = 1;
 		goto done;
 	}
@@ -484,6 +487,7 @@ SDL_AudioSpec * SDL_LoadWAV_RW (SDL_RWops *src, int freesrc,
 		}
 		lenread = ReadChunk(src, &chunk);
 		if ( lenread < 0 ) {
+		    fprintf(stderr,"ReacChunk err!\n");
 			was_error = 1;
 			goto done;
 		}
@@ -495,6 +499,7 @@ SDL_AudioSpec * SDL_LoadWAV_RW (SDL_RWops *src, int freesrc,
 	format = (WaveFMT *)chunk.data;
 	if ( chunk.magic != FMT ) {
 		SDL_SetError("Complex WAVE files not supported");
+		fprintf(stderr,"complex wav!\n");
 		was_error = 1;
 		goto done;
 	}
@@ -506,6 +511,7 @@ SDL_AudioSpec * SDL_LoadWAV_RW (SDL_RWops *src, int freesrc,
 		case MS_ADPCM_CODE:
 			/* Try to understand this */
 			if ( InitMS_ADPCM(format, lenread) < 0 ) {
+			    fprintf(stderr,"bad format!\n");
 				was_error = 1;
 				goto done;
 			}
@@ -514,6 +520,7 @@ SDL_AudioSpec * SDL_LoadWAV_RW (SDL_RWops *src, int freesrc,
 		case IMA_ADPCM_CODE:
 			/* Try to understand this */
 			if ( InitIMA_ADPCM(format, lenread) < 0 ) {
+			    fprintf(stderr,"bad format2!\n");
 				was_error = 1;
 				goto done;
 			}
@@ -522,11 +529,13 @@ SDL_AudioSpec * SDL_LoadWAV_RW (SDL_RWops *src, int freesrc,
 		case MP3_CODE:
 			SDL_SetError("MPEG Layer 3 data not supported",
 					SDL_SwapLE16(format->encoding));
+					fprintf(stderr,"was mpeg!\n");
 			was_error = 1;
 			goto done;
 		default:
 			SDL_SetError("Unknown WAVE data format: 0x%.4x",
 					SDL_SwapLE16(format->encoding));
+					fprintf(stderr,"unk format!\n");
 			was_error = 1;
 			goto done;
 	}
@@ -538,6 +547,7 @@ SDL_AudioSpec * SDL_LoadWAV_RW (SDL_RWops *src, int freesrc,
 				spec->format = AUDIO_S16;
 			} else {
 				was_error = 1;
+				fprintf(stderr,"bad freq!\n");
 			}
 			break;
 		case 8:
@@ -548,11 +558,13 @@ SDL_AudioSpec * SDL_LoadWAV_RW (SDL_RWops *src, int freesrc,
 			break;
 		default:
 			was_error = 1;
+			fprintf(stderr,"bad freq2!\n");
 			break;
 	}
 	if ( was_error ) {
 		SDL_SetError("Unknown %d-bit PCM data format",
 			SDL_SwapLE16(format->bitspersample));
+			fprintf(stderr,"was error!\n");
 		goto done;
 	}
 	spec->channels = (Uint8)SDL_SwapLE16(format->channels);
@@ -568,6 +580,7 @@ SDL_AudioSpec * SDL_LoadWAV_RW (SDL_RWops *src, int freesrc,
 		lenread = ReadChunk(src, &chunk);
 		if ( lenread < 0 ) {
 			was_error = 1;
+			fprintf(stderr,"read chunk2!\n");
 			goto done;
 		}
 		*audio_len = lenread;
@@ -579,11 +592,13 @@ SDL_AudioSpec * SDL_LoadWAV_RW (SDL_RWops *src, int freesrc,
 	if ( MS_ADPCM_encoded ) {
 		if ( MS_ADPCM_decode(audio_buf, audio_len) < 0 ) {
 			was_error = 1;
+			fprintf(stderr,"bad fmt3!\n");
 			goto done;
 		}
 	}
 	if ( IMA_ADPCM_encoded ) {
 		if ( IMA_ADPCM_decode(audio_buf, audio_len) < 0 ) {
+		    fprintf(stderr,"bad fmt4!\n");
 			was_error = 1;
 			goto done;
 		}
