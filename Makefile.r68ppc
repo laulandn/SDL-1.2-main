@@ -1,5 +1,5 @@
+PATH_TO_RETRO68=$(HOME)/Retro68-build/toolchain/powerpc-apple-macos
 
-#PPCC=m68k-apple-macos-gcc -c
 PPCC=powerpc-apple-macos-gcc -c
 
 MAKEFILE     = Makefile
@@ -129,6 +129,10 @@ clean:
 	rm -rf obj/*
 	rm -rf libSDL.a
 
+install:
+	mkdir -p $(PATH_TO_RETRO68)/include/SDL
+	cp include/* $(PATH_TO_RETRO68)/include/SDL
+	cp libSDL*.a $(PATH_TO_RETRO68)/lib
 
 # The SDL library objects
 
