@@ -1,0 +1,23 @@
+Settings are: 0,0,0,16,2
+Called my aglChoosePixelFormat...
+aglChoosePixelFormat: attrib=AGL_RGBA
+aglChoosePixelFormat: attrib=AGL_RED_SIZE is 5
+aglChoosePixelFormat: attrib=AGL_GREEN_SIZE is 5
+aglChoosePixelFormat: attrib=AGL_BLUE_SIZE is 5
+aglChoosePixelFormat: attrib=AGL_ALPHA_SIZE is 0
+aglChoosePixelFormat: attrib=AGL_DOUBLEBUFFER
+aglChoosePixelFormat: attrib=AGL_DEPTH_SIZE is 16
+aglChoosePixelFormat: attrib=AGL_USE_GL
+aglChoosePixelFormat no gdevs, providing one...
+Passing to my __aglChoosePixelFmt2026...
+Called my __aglChoosePixelFmt2026...
+Calling real DDChoosePixelFmt...
+FYI glGetString is lying and we are saying GL_VENDOR Mesa
+FYI glGetString_old said Brian Paul
+FYI glGetString is lying and we are saying GL_RENDERER Generic
+FYI glGetString_old said Mesa AGL_C32/16
+FYI glGetString is lying and we are saying  GL_VERSION 1.1
+FYI glGetString_old said 1.1 Mesa 2.4
+FYI glGetString is lying and we are saying GL_EXTENSIONS unknown
+FYI glGetString_old said GL_EXT_blend_color GL_EXT_blend_minmax GL_EXT_blend_logic_op GL_EXT_blend_subtract GL_EXT_polygon_offset GL_EXT_vertex_array GL_EXT_texture_object GL_EXT_texture3D GL_MESA_window_pos GL_MESA_resize_buffers
+testgl: SDL error 'GL_GetAttribute not supported'

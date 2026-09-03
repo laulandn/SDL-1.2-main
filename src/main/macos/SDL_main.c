@@ -647,7 +647,10 @@ int main(int argc, char *argv[])
 #define VIDEO_ID_DRAWSPROCKET 1          /* these correspond to popup menu choices */
 #define VIDEO_ID_TOOLBOX      2
 
-    PrefsRecord prefs = { (unsigned char *)DEFAULT_ARGS, DEFAULT_VIDEO_DRIVER, DEFAULT_OUTPUT_TO_FILE }; 
+    // TODODODODODOD: There is something very wrong in the next line
+    PrefsRecord prefs = { { 0 }, { 0 }, DEFAULT_OUTPUT_TO_FILE };
+    memcpy(prefs.command_line, DEFAULT_ARGS, sizeof(DEFAULT_ARGS));
+    memcpy(prefs.video_driver_name, DEFAULT_VIDEO_DRIVER, sizeof(DEFAULT_VIDEO_DRIVER));
 	
 #if !(defined(__APPLE__) && defined(__MACH__))
 	int     nargs;

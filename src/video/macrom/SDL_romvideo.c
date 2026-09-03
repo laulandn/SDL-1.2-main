@@ -74,7 +74,8 @@ static RgnHandle	gSaveGrayRgn = nil;
 static short		gSaveMenuBar = 0;
 static Boolean		gSaveCSVis = true;
 
-#if powerc
+#if __POWERPC__
+//#include <ControlStrip.h>
 /* Mixed mode glue to activate the 68K emulator and twiddle a register */
 #define ONEWORDSTUB(p1) \
 		{ 0x41FA, 0x0010, 0x209F, (p1), 0x41FA, \
@@ -88,7 +89,7 @@ static Boolean		gSaveCSVis = true;
 		{ 0x41FA, 0x0014, 0x209F, (p1), (p2), (p3), 0x41FA, \
 		  0x0008, 0x2F10, 0x4E75, 0x0000, 0x0000, 0x0000 }
 
-/* ControlStrip inline glue for PowerPC */
+/* ControlStrip inline glue for __POWERPC__ */
 static pascal Boolean SBIsControlStripVisible(void)
 {
 	static short procData[] = TWOWORDSTUB(0x7000, 0xAAF2);
@@ -108,7 +109,7 @@ static pascal void SBShowHideControlStrip(Boolean showIt)
 
 	CallUniversalProc((UniversalProcPtr) procData, procInfo, 0x01, showIt);
 }
-#endif /* powerc */
+#endif /* __POWERPC__ */
 #endif /* !TARGET_API_MAC_CARBON */
 
 /* Macintosh toolbox driver bootstrap functions */
@@ -301,7 +302,7 @@ static void ROM_HideMenuBar(_THIS)
 		   previous position into the dirty region for redrawing. 
 		   This isn't necessary, but may help catch stray bits. */
 		CopyRgn(grayRgn, tempRgn);
-#if GENERATINGPOWERPC
+#if GENERATING__POWERPC__
 		if (!Gestalt(gestaltControlStripAttr, &response) && 
 			(response & (1L << gestaltControlStripExists))) {
 			gSaveCSVis = SBIsControlStripVisible();
@@ -427,7 +428,7 @@ static void ROM_ShowMenuBar(_THIS)
 		SetPort(savePort);
 		gSaveMenuBar = 0;
 
-#if GENERATINGPOWERPC
+#if GENERATING__POWERPC__
 		/* Now show the control strip if it's present */
 		if (!Gestalt(gestaltControlStripAttr, &response) && 
 				(response & (1L << gestaltControlStripExists)))

@@ -1,0 +1,15 @@
+Screen BPP: 32
+
+Vendor     : Mesa
+Renderer   : Generic
+Version    : 1.1
+Extensions : Unknown
+
+SDL_GL_RED_SIZE: requested 5, got 0
+SDL_GL_GREEN_SIZE: requested 5, got 0
+SDL_GL_BLUE_SIZE: requested 5, got 0
+SDL_GL_DEPTH_SIZE: requested 16, got 0
+SDL_GL_DOUBLEBUFFER: requested 1, got 0
+key 'left meta' pressed
+key 'left shift' pressed
+8.13 FPS

@@ -113,8 +113,8 @@ typedef unsigned long	uintptr_t;
 #define SDL_VIDEO_DRIVER_TOOLBOX	1
 
 /* Enable OpenGL support */
-#if __ppc__
-/*#define SDL_VIDEO_OPENGL	1*/
-#endif
+//#if __ppc__
+#define SDL_VIDEO_OPENGL	1
+//#endif
 
 #endif /* _SDL_config_macos_h */

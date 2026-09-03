@@ -1,0 +1,43 @@
+PATH_TO_RETRO68=$(HOME)/Retro68-build/toolchain/m68k-apple-macos
+
+.SUFFIXES:	.bin
+
+
+TARGETS = checkkeys.bin graywin.bin loopwave.bin testalpha.bin testbitmap.bin \
+testblitspeed.bin testcdrom.bin testcursor.bin testdyngl.bin \
+testerror.bin testfile.bin testgamma.bin testgl.bin testthread.bin \
+testiconv.bin testjoystick.bin testkeys.bin testlock.bin \
+testoverlay2.bin testoverlay.bin testpalette.bin testplatform.bin \
+testsem.bin testsprite.bin testtimer.bin testver.bin testvidinfo.bin \
+testwin.bin testwm.bin threadwin.bin torturethread.bin testloadso.bin
+
+OBJS=$(subst .c,.o,$(wildcard *.c))
+
+
+
+BINPATH = .
+INCPATH+= -I../include -I$(PATH_TO_RETRO68)/include/GL
+CFLAGS+= $(INCPATH) -D__MACOSCLASSIC__ -DHAVE_OPENGL=1
+
+LIBPATH = -L..
+LIBS = -lSDL -lm -lInputSprocketLib -lDrawSprocketLib -lOpenGLLibrary -lOpenGLUtility
+LIBF = SDLmain.lib
+
+CC=m68k-apple-macos-gcc
+CXX=m68k-apple-macos-g++
+
+
+.o.bin:
+	$(CXX) -o $*.code.bin $< ../obj/SDL_main.c.o $(LIBPATH) $(LIBS)
+	$(HOME)/sdl2macos9/bin2app.sh $*
+	
+.c.o:
+	$(CC) -o $@ -c $< $(CFLAGS)
+
+
+all: $(TARGETS)
+
+clean:
+	rm -rf *.bin *.APPL *.dsk *.pef *.PPC *.PPC.xSYM
+
+distclean:

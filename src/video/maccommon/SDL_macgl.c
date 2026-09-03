@@ -28,6 +28,17 @@
 #include "SDL_loadso.h"
 
 
+#ifdef MESA
+#undef MESA
+#endif
+
+/* This supports both real Apple dynamic OpenGL, and static Mesa */
+
+#ifdef __POWERPC__
+#define OPENGL_IS_DYNAMIC 1
+#endif
+
+
 /* krat: adding OpenGL support */
 int Mac_GL_Init(_THIS)
 {
@@ -193,15 +204,23 @@ int Mac_GL_LoadLibrary(_THIS, const char *location)
 		location = "OpenGLLibrary";
 #endif
 
+#ifdef OPENGL_IS_DYNAMIC
 	this->hidden->libraryHandle = SDL_LoadObject(location);
+#endif
 
 	this->gl_config.driver_loaded = 1;
+#ifdef OPENGL_IS_DYNAMIC
 	return (this->hidden->libraryHandle != NULL) ? 0 : -1;
+#else
+    return 0;
+#endif
 }
 
 void Mac_GL_UnloadLibrary(_THIS)
 {
+#ifdef OPENGL_IS_DYNAMIC
 	SDL_UnloadObject(this->hidden->libraryHandle);
+#endif
 
 	this->hidden->libraryHandle = NULL;
 	this->gl_config.driver_loaded = 0;
@@ -209,7 +228,70 @@ void Mac_GL_UnloadLibrary(_THIS)
 
 void* Mac_GL_GetProcAddress(_THIS, const char *proc)
 {
+#ifdef OPENGL_IS_DYNAMIC
 	return SDL_LoadFunction( this->hidden->libraryHandle, proc );
+#else
+    void *symbol=NULL;
+    /* There's a better way to do this...but this works for now... */
+    if(!strcmp("glBegin",proc)) symbol=(void *)glBegin;
+    if(!strcmp("glBindTexture",proc)) symbol=(void *)glBindTexture;
+    //if(!strcmp("glBlendEquation",proc)) symbol=(void *)glBlendEquation;
+    //if(!strcmp("glBlendFuncSeparate",proc)) symbol=(void *)glBlendFuncSeparate;
+    if(!strcmp("glClear",proc)) symbol=(void *)glClear;
+    if(!strcmp("glClearColor",proc)) symbol=(void *)glClear;
+    if(!strcmp("glColor3fv",proc)) symbol=(void *)glColor3fv;
+    if(!strcmp("glColor4f",proc)) symbol=(void *)glColor4f;
+    if(!strcmp("glColor4ub",proc)) symbol=(void *)glColor4ub;
+    if(!strcmp("glColorPointer",proc)) symbol=(void *)glColorPointer;
+    if(!strcmp("glDeleteTextures",proc)) symbol=(void *)glDeleteTextures;
+    if(!strcmp("glDepthFunc",proc)) symbol=(void *)glDepthFunc;
+    if(!strcmp("glDisable",proc)) symbol=(void *)glDisable;
+    if(!strcmp("glDisableClientState",proc)) symbol=(void *)glDisableClientState;
+    if(!strcmp("glDrawArrays",proc)) symbol=(void *)glDrawArrays;
+    if(!strcmp("glDrawPixels",proc)) symbol=(void *)glDrawPixels;
+    if(!strcmp("glEnable",proc)) symbol=(void *)glEnable;
+    if(!strcmp("glEnableClientState",proc)) symbol=(void *)glEnableClientState;
+    if(!strcmp("glEnd",proc)) symbol=(void *)glEnd;
+    if(!strcmp("glGenTextures",proc)) symbol=(void *)glGenTextures;
+    if(!strcmp("glGetError",proc)) symbol=(void *)glGetError;
+    if(!strcmp("glGetFloatv",proc)) symbol=(void *)glGetFloatv;
+    if(!strcmp("glGetIntegerv",proc)) symbol=(void *)glGetIntegerv;
+    if(!strcmp("glGetPointerv",proc)) symbol=(void *)glGetPointerv;
+    if(!strcmp("glGetString",proc)) symbol=(void *)glGetString;
+    if(!strcmp("glLineWidth",proc)) symbol=(void *)glLineWidth;
+    if(!strcmp("glLoadIdentity",proc)) symbol=(void *)glLoadIdentity;
+    if(!strcmp("glMatrixMode",proc)) symbol=(void *)glMatrixMode;
+    if(!strcmp("glOrtho",proc)) symbol=(void *)glOrtho;
+    if(!strcmp("glPixelStorei",proc)) symbol=(void *)glPixelStorei;
+    if(!strcmp("glPointSize",proc)) symbol=(void *)glPointSize;
+    if(!strcmp("glRasterPos2i",proc)) symbol=(void *)glRasterPos2i;
+    if(!strcmp("glReadBuffer",proc)) symbol=(void *)glReadBuffer;
+    if(!strcmp("glReadPixels",proc)) symbol=(void *)glReadPixels;
+    if(!strcmp("glRectf",proc)) symbol=(void *)glRectf;
+    if(!strcmp("glRotatef",proc)) symbol=(void *)glRotatef;
+    if(!strcmp("glScissor",proc)) symbol=(void *)glScissor;
+    if(!strcmp("glShadeModel",proc)) symbol=(void *)glShadeModel;
+    if(!strcmp("glTexCoord2f",proc)) symbol=(void *)glTexCoord2f;
+    if(!strcmp("glTexCoordPointer",proc)) symbol=(void *)glTexCoordPointer;
+    if(!strcmp("glTexEnvf",proc)) symbol=(void *)glTexEnvf;
+    if(!strcmp("glTexImage2D",proc)) symbol=(void *)glTexImage2D;
+    if(!strcmp("glTexParameteri",proc)) symbol=(void *)glTexParameteri;
+    if(!strcmp("glTexSubImage2D",proc)) symbol=(void *)glTexSubImage2D;
+    if(!strcmp("glVertex2f",proc)) symbol=(void *)glVertex2f;
+    if(!strcmp("glVertex3fv",proc)) symbol=(void *)glVertex3fv;
+    if(!strcmp("glVertexPointer",proc)) symbol=(void *)glVertexPointer;
+    if(!strcmp("glViewport",proc)) symbol=(void *)glViewport;
+    if(!symbol) {
+#ifdef MAC_DEBUG
+      fprintf(stderr,"Returning fake pointer for %s...this will cause a crash when called!\n",proc); fflush(stderr);
+#endif
+      symbol=(void *)0x8000;
+    }
+#ifdef MAC_DEBUG
+      fprintf(stderr,"Returning 0x%x\n",(int)symbol); fflush(stderr);
+#endif
+  return symbol;
+#endif
 }
 
 #endif /* SDL_VIDEO_OPENGL */

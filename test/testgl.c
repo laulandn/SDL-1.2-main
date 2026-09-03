@@ -507,6 +507,7 @@ int RunGLTest( int argc, char* argv[],
            video_flags |= SDL_NOFRAME;
         }
 
+  fprintf(stderr,"Settings are: %d,%d,%d,%d,%d\n",(int)fsaa,(int)accel,(int)sync,bpp,video_flags); fflush(stderr);
 	/* Initialize the display */
 	switch (bpp) {
 	    case 8:
