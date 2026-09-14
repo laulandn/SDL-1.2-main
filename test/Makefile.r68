@@ -20,7 +20,8 @@ INCPATH+= -I../include -I$(PATH_TO_RETRO68)/include/GL
 CFLAGS+= $(INCPATH) -D__MACOSCLASSIC__ -DHAVE_OPENGL=1
 
 LIBPATH = -L..
-LIBS = -lSDL -lm -lInputSprocketLib -lDrawSprocketLib -lOpenGLLibrary -lOpenGLUtility
+#LIBS = -lSDL -lm -lInputSprocketLib -lDrawSprocketLib -lOpenGLLibrary -lOpenGLUtility
+LIBS = -lSDL -lm -lInputSprocketLib -lDrawSprocketLib -L$(HOME)/tinygl/lib -lTinyGL
 LIBF = SDLmain.lib
 
 CC=m68k-apple-macos-gcc

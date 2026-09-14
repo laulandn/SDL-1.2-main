@@ -21,6 +21,10 @@
 */
 #include "SDL_config.h"
 
+
+#ifndef SDL_VIDEO_OSGL
+
+
 /* AGL implementation of SDL OpenGL support */
 
 #include "SDL_lowvideo.h"
@@ -296,3 +300,5 @@ void* Mac_GL_GetProcAddress(_THIS, const char *proc)
 
 #endif /* SDL_VIDEO_OPENGL */
 
+
+#endif
