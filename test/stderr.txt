@@ -1,9 +1,2 @@
 Settings are: 0,0,0,16,2
-fake aglChoosePixelFormat!
-fake aglDestroyPixelFormat!
-fake aglSetDrawable!
-fake aglSetCurrentContext!
-glDepthFunc...not implemented
 testgl: SDL error 'GL_GetAttribute not supported'
-fake aglSetCurrentContext!
-fake aglSetDrawable!

@@ -1,13 +1,17 @@
 Screen BPP: 32
 
-Vendor     : Fabrice Bellard et alia.
-Renderer   : TinyGL
-Version    : TINYGL_VERSION TinyGLvTINYGL_VERSION Compiled using GCC 12.2.0
-Extensions : TGL_TEXTURE TGL_SMOOTHSHADING TGL_LIGHTING TGL_OPTIMIZATION_HINT_BRANCH_COST=TGL_OPTIMIZATION_HINT_BRANCH_COST TGL_FEATURE_ARRAYS TGL_FEATURE_DISPLAYLISTS TGL_FEATURE_OPTIMIZED_TEXTURE_ACCESS TGL_FEATURE_TEXTURE_POW2=TGL_FEATURE_TEXTURE_POW2 TGL_FEATURE_POLYGON_OFFSET TGL_FEATURE_16_BITS TGL_FEATURE_32_BITS TGL_FEATURE_SINGLE_THREADED TGL_BUFFER_EXT TGL_SOFTWARE_ACCELERATED
+Vendor     : Apple
+Renderer   : Generic
+Version    : 1.1
+Extensions : GL_APPLE_specular_vector GL_APPLE_transform_hint GL_EXT_blend_color GL_EXT_blend_minmax GL_EXT_blend_subtract 
 
 SDL_GL_RED_SIZE: requested 5, got 0
 SDL_GL_GREEN_SIZE: requested 5, got 0
 SDL_GL_BLUE_SIZE: requested 5, got 0
 SDL_GL_DEPTH_SIZE: requested 16, got 0
 SDL_GL_DOUBLEBUFFER: requested 1, got 0
-146.19 FPS
+key 'left meta' pressed
+key 'q' pressed
+key 'left meta' pressed
+key 'w' pressed
+197.46 FPS

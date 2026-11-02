@@ -20,8 +20,9 @@ INCPATH+= -I../include -I$(PATH_TO_RETRO68)/include/GL
 CFLAGS+= $(INCPATH) -D__MACOSCLASSIC__ -DHAVE_OPENGL=1
 
 LIBPATH = -L..
-#LIBS = -lSDL -lm -lInputSprocketLib -lDrawSprocketLib -lOpenGLLibrary -lOpenGLUtility
-LIBS = -lSDL -lm -lInputSprocketLib -lDrawSprocketLib -L$(HOME)/tinygl/lib -lTinyGL
+LIBS = -lSDL -lm -lInputSprocketLib -lDrawSprocketLib -lOpenGLLibrary -lOpenGLUtility
+#LIBS = -lSDL -lm -lInputSprocketLib -lDrawSprocketLib 
+#LIBS+=-L$(HOME)/tinygl/lib -lTinyGL
 LIBF = SDLmain.lib
 
 CC=m68k-apple-macos-gcc
@@ -30,7 +31,7 @@ CXX=m68k-apple-macos-g++
 
 .o.bin:
 	$(CXX) -o $*.code.bin $< ../obj/SDL_main.c.o $(LIBPATH) $(LIBS)
-	$(HOME)/sdl2macos9/bin2app.sh $*
+	../bin2app.sh $*
 	
 .c.o:
 	$(CC) -o $@ -c $< $(CFLAGS)
@@ -39,6 +40,13 @@ CXX=m68k-apple-macos-g++
 all: $(TARGETS)
 
 clean:
-	rm -rf *.bin *.APPL *.dsk *.pef *.PPC *.PPC.xSYM
+	rm -rf *.bin *.APPL *.dsk *.pef *.PPC *.PPC.xSYM *.gdb
+	rm -rf checkkeys graywin loopwave testalpha testbitmap \
+testblitspeed testcdrom testcursor testdyngl \
+testerror testfile testgamma testgl testthread \
+testiconv testjoystick testkeys testlock \
+testoverlay2 testoverlay testpalette testplatform \
+testsem testsprite testtimer testver testvidinfo \
+testwin testwm threadwin torturethread testloadso
 
 distclean:

@@ -4,7 +4,7 @@ PPCC=powerpc-apple-macos-gcc -c
 
 MAKEFILE     = Makefile
 _MondoBuild_ = #$(MAKEFILE)  # Make blank to avoid rebuilds when makefile is modified
-SDL_INC = -I include -I$(HOME)/Retro68-build/toolchain/powerpc-apple-macos/include/GL
+SDL_INC = -I include -I$(PATH_TO_RETRO68)/include/GL
 STUB_INC =	-I include
 Sym_PPC      = #-sym on
 ObjDir_PPC   = obj/
@@ -53,6 +53,7 @@ SDLOBJS  = \
 	$(ObjDir_PPC)SDL_romvideo.c.o \
 	$(ObjDir_PPC)SDL_dspvideo.c.o \
 	$(ObjDir_PPC)SDL_macgl.c.o \
+	$(ObjDir_PPC)SDL_macosgl.c.o \
 	$(ObjDir_PPC)SDL_macwm.c.o \
 	$(ObjDir_PPC)SDL_active.c.o \
 	$(ObjDir_PPC)SDL_events.c.o \
@@ -255,6 +256,9 @@ $(ObjDir_PPC)SDL_romvideo.c.o: $(_MondoBuild_) src/video/macrom/SDL_romvideo.c
 
 $(ObjDir_PPC)SDL_macgl.c.o: $(_MondoBuild_) src/video/maccommon/SDL_macgl.c
 	$(PPCC) src/video/maccommon/SDL_macgl.c -o $@ $(SDL_CFLAGS)
+
+$(ObjDir_PPC)SDL_macosgl.c.o: $(_MondoBuild_) src/video/maccommon/SDL_macosgl.c
+	$(PPCC) src/video/maccommon/SDL_macosgl.c -o $@ $(SDL_CFLAGS)
 
 $(ObjDir_PPC)SDL_macwm.c.o: $(_MondoBuild_) src/video/maccommon/SDL_macwm.c
 	$(PPCC) src/video/maccommon/SDL_macwm.c -o $@ $(SDL_CFLAGS)
