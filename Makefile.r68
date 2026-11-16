@@ -129,6 +129,7 @@ directories:
 clean:
 	rm -rf obj/*
 	rm -rf *.a
+	rm -rf lib
 
 install:
 	mkdir -p $(PATH_TO_RETRO68)/include/SDL

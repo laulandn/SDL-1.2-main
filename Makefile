@@ -1,329 +1,182 @@
-PATH_TO_RETRO68=
+# Makefile to build and install the SDL library
 
-PPCC=gcc -c -DTARGET_API_MAC_CARBON=1
+top_builddir = .
+srcdir  = .
+objects = build
+depend	= build-deps
+prefix = /usr/local
+exec_prefix = ${prefix}
+bindir	= ${exec_prefix}/bin
+libdir  = ${exec_prefix}/lib
+includedir = ${prefix}/include
+datarootdir = ${prefix}/share
+datadir	= ${datarootdir}
+mandir	= ${datarootdir}/man
+auxdir	= build-scripts
+distpath = $(srcdir)/..
+distdir = SDL-1.2.16
+distfile = $(distdir).tar.gz
 
-MAKEFILE     = Makefile
-_MondoBuild_ = #$(MAKEFILE)  # Make blank to avoid rebuilds when makefile is modified
-SDL_INC = -I include -I$(HOME)/Retro68-build/toolchain/powerpc-apple-macos/include/GL
-STUB_INC =	-I include
-Sym_PPC      = #-sym on
-ObjDir_PPC   = obj/
 
-SDL_CFLAGS  = $(SDL_INC) $(Sym_PPC)
-STUB_CFLAGS = $(STUB_INC) $(Sym_PPC)
+SHELL	= /bin/sh
+CC      = gcc
+CXX     = g++
+INCLUDE = -I./include
+CFLAGS  = -g -O2 
+EXTRA_CFLAGS = -I./include -D_GNU_SOURCE=1 -DTARGET_API_MAC_CARBON -DTARGET_API_MAC_OSX -fvisibility=hidden  -I/usr/X11R6/include -DXTHREADS -D_THREAD_SAFE -force_cpusubtype_ALL -fpascal-strings -Wall
+LDFLAGS = 
+EXTRA_LDFLAGS =  -Wl,-framework,OpenGL  -Wl,-framework,Cocoa -Wl,-framework,ApplicationServices -Wl,-framework,Carbon -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit -Wl,-framework,IOKit
+LIBTOOL = $(SHELL) $(top_builddir)/libtool
+INSTALL = /opt/local/bin/ginstall -c
+NASM	=  
+AR	= ar
+RANLIB	= ranlib
+WINDRES	= :
 
-SDLOBJS  = \
-	$(ObjDir_PPC)SDL.c.o \
-	$(ObjDir_PPC)SDL_error.c.o \
-	$(ObjDir_PPC)SDL_fatal.c.o \
-	$(ObjDir_PPC)SDL_getenv.c.o \
-	$(ObjDir_PPC)SDL_iconv.c.o \
-	$(ObjDir_PPC)SDL_malloc.c.o \
-	$(ObjDir_PPC)SDL_qsort.c.o \
-	$(ObjDir_PPC)SDL_stdlib.c.o \
-	$(ObjDir_PPC)SDL_string.c.o \
-	$(ObjDir_PPC)SDL_sysloadso.c.o \
-	$(ObjDir_PPC)SDL_audio.c.o \
-	$(ObjDir_PPC)SDL_dummyaudio.c.o \
-	$(ObjDir_PPC)SDL_diskaudio.c.o \
-	$(ObjDir_PPC)SDL_audiocvt.c.o \
-	$(ObjDir_PPC)SDL_mixer.c.o \
-	$(ObjDir_PPC)SDL_wave.c.o \
-	$(ObjDir_PPC)SDL_romaudio.c.o \
-	$(ObjDir_PPC)SDL_RLEaccel.c.o \
-	$(ObjDir_PPC)SDL_blit.c.o \
-	$(ObjDir_PPC)SDL_blit_0.c.o \
-	$(ObjDir_PPC)SDL_blit_1.c.o \
-	$(ObjDir_PPC)SDL_blit_A.c.o \
-	$(ObjDir_PPC)SDL_blit_N.c.o \
-	$(ObjDir_PPC)SDL_stretch.c.o \
-	$(ObjDir_PPC)SDL_gamma.c.o \
-	$(ObjDir_PPC)SDL_bmp.c.o \
-	$(ObjDir_PPC)SDL_cursor.c.o \
-	$(ObjDir_PPC)SDL_pixels.c.o \
-	$(ObjDir_PPC)SDL_surface.c.o \
-	$(ObjDir_PPC)SDL_video.c.o \
-	$(ObjDir_PPC)SDL_nullevents.c.o \
-	$(ObjDir_PPC)SDL_nullmouse.c.o \
-	$(ObjDir_PPC)SDL_nullvideo.c.o \
-	$(ObjDir_PPC)SDL_yuv.c.o \
-	$(ObjDir_PPC)SDL_yuv_sw.c.o \
-	$(ObjDir_PPC)SDL_macevents.c.o \
-	$(ObjDir_PPC)SDL_macmouse.c.o \
-	$(ObjDir_PPC)SDL_romvideo.c.o \
-	$(ObjDir_PPC)SDL_dspvideo.c.o \
-	$(ObjDir_PPC)SDL_macgl.c.o \
-	$(ObjDir_PPC)SDL_macwm.c.o \
-	$(ObjDir_PPC)SDL_active.c.o \
-	$(ObjDir_PPC)SDL_events.c.o \
-	$(ObjDir_PPC)SDL_keyboard.c.o \
-	$(ObjDir_PPC)SDL_mouse.c.o \
-	$(ObjDir_PPC)SDL_resize.c.o \
-	$(ObjDir_PPC)SDL_joystick.c.o \
-	$(ObjDir_PPC)SDL_sysjoystick.c.o \
-	$(ObjDir_PPC)SDL_quit.c.o \
-	$(ObjDir_PPC)SDL_cdrom.c.o \
-	$(ObjDir_PPC)SDL_syscdrom.c.o \
-	$(ObjDir_PPC)SDL_thread.c.o \
-	$(ObjDir_PPC)SDL_syscond.c.o \
-	$(ObjDir_PPC)SDL_sysmutex.c.o \
-	$(ObjDir_PPC)SDL_syssem.c.o \
-	$(ObjDir_PPC)SDL_systhread.c.o \
-	$(ObjDir_PPC)SDL_timer.c.o \
-	$(ObjDir_PPC)SDL_MPWtimer.c.o \
-	$(ObjDir_PPC)SDL_rwops.c.o \
-	$(ObjDir_PPC)SDL_cpuinfo.c.o
+TARGET  = libSDL.la
+SOURCES =  ./src/*.c ./src/audio/*.c ./src/cdrom/*.c ./src/cpuinfo/*.c ./src/events/*.c ./src/file/*.c ./src/stdlib/*.c ./src/thread/*.c ./src/timer/*.c ./src/video/*.c ./src/joystick/*.c ./src/video/dummy/*.c ./src/audio/disk/*.c ./src/audio/dummy/*.c ./src/loadso/dlopen/*.c ./src/video/quartz/*.m ./src/video/x11/*.c ./src/video/Xext/Xxf86dga/*.c ./src/video/dga/*.c ./src/video/Xext/Xxf86vm/*.c ./src/video/Xext/Xv/*.c ./src/video/Xext/Xinerama/*.c ./src/video/Xext/XME/*.c ./src/thread/pthread/SDL_systhread.c ./src/thread/pthread/SDL_syssem.c ./src/thread/pthread/SDL_sysmutex.c ./src/thread/pthread/SDL_syscond.c ./src/audio/macosx/*.c ./src/joystick/darwin/*.c ./src/cdrom/macosx/*.c ./src/timer/unix/*.c
+OBJECTS = $(objects)/SDL.lo $(objects)/SDL_error.lo $(objects)/SDL_fatal.lo $(objects)/SDL_audio.lo $(objects)/SDL_audiocvt.lo $(objects)/SDL_audiodev.lo $(objects)/SDL_mixer.lo $(objects)/SDL_mixer_MMX.lo $(objects)/SDL_mixer_MMX_VC.lo $(objects)/SDL_mixer_m68k.lo $(objects)/SDL_wave.lo $(objects)/SDL_cdrom.lo $(objects)/SDL_cpuinfo.lo $(objects)/SDL_active.lo $(objects)/SDL_events.lo $(objects)/SDL_expose.lo $(objects)/SDL_keyboard.lo $(objects)/SDL_mouse.lo $(objects)/SDL_quit.lo $(objects)/SDL_resize.lo $(objects)/SDL_rwops.lo $(objects)/SDL_getenv.lo $(objects)/SDL_iconv.lo $(objects)/SDL_malloc.lo $(objects)/SDL_qsort.lo $(objects)/SDL_stdlib.lo $(objects)/SDL_string.lo $(objects)/SDL_thread.lo $(objects)/SDL_timer.lo $(objects)/SDL_RLEaccel.lo $(objects)/SDL_blit.lo $(objects)/SDL_blit_0.lo $(objects)/SDL_blit_1.lo $(objects)/SDL_blit_A.lo $(objects)/SDL_blit_N.lo $(objects)/SDL_bmp.lo $(objects)/SDL_cursor.lo $(objects)/SDL_gamma.lo $(objects)/SDL_pixels.lo $(objects)/SDL_stretch.lo $(objects)/SDL_surface.lo $(objects)/SDL_video.lo $(objects)/SDL_yuv.lo $(objects)/SDL_yuv_mmx.lo $(objects)/SDL_yuv_sw.lo $(objects)/SDL_joystick.lo $(objects)/SDL_nullevents.lo $(objects)/SDL_nullmouse.lo $(objects)/SDL_nullvideo.lo $(objects)/SDL_diskaudio.lo $(objects)/SDL_dummyaudio.lo $(objects)/SDL_sysloadso.lo $(objects)/SDL_QuartzEvents.lo $(objects)/SDL_QuartzGL.lo $(objects)/SDL_QuartzVideo.lo $(objects)/SDL_QuartzWM.lo $(objects)/SDL_QuartzWindow.lo $(objects)/SDL_x11dga.lo $(objects)/SDL_x11dyn.lo $(objects)/SDL_x11events.lo $(objects)/SDL_x11gamma.lo $(objects)/SDL_x11gl.lo $(objects)/SDL_x11image.lo $(objects)/SDL_x11modes.lo $(objects)/SDL_x11mouse.lo $(objects)/SDL_x11video.lo $(objects)/SDL_x11wm.lo $(objects)/SDL_x11yuv.lo $(objects)/XF86DGA.lo $(objects)/XF86DGA2.lo $(objects)/SDL_dgaevents.lo $(objects)/SDL_dgamouse.lo $(objects)/SDL_dgavideo.lo $(objects)/XF86VMode.lo $(objects)/Xv.lo $(objects)/Xinerama.lo $(objects)/xme.lo $(objects)/SDL_systhread.lo $(objects)/SDL_syssem.lo $(objects)/SDL_sysmutex.lo $(objects)/SDL_syscond.lo $(objects)/SDL_coreaudio.lo $(objects)/SDL_sysjoystick.lo $(objects)/AudioFilePlayer.lo $(objects)/AudioFileReaderThread.lo $(objects)/CDPlayer.lo $(objects)/SDLOSXCAGuard.lo $(objects)/SDL_syscdrom.lo $(objects)/SDL_systimer.lo
 
-STUBOBJS  = \
-	$(ObjDir_PPC)SDL_main.c.o
+SDLMAIN_TARGET = libSDLmain.la
+SDLMAIN_SOURCES = ./src/main/macosx/*.m
+SDLMAIN_OBJECTS = $(objects)/SDLMain.lo
+SDLMAIN_LDFLAGS = -static
 
-# This is used to build a dynamic library of SDL
-#SDL: $(_MondoBuild_) directories SDLmain.o $(SDLOBJS) #SDL.o
-#	PPCLink \
-#		-o "/lib/$@" $(Sym_PPC) \
-#		$(SDLOBJS) \
-#		-@.oport src/main/macos/.oports/SDL.o \
-#		-t 'shlb' \
-#		-c '????' \
-#		.om s \
-#		"$(SharedLibraries)InterfaceLib \
-#		"$(SharedLibraries)StdCLib \
-#		"$(SharedLibraries)MathLib \
-#		"$(PPCLibraries)StdCRuntime.o \
-#		"$(PPCLibraries)PPCCRuntime.o \
-#		"$(PPCLibraries)PPCToolLibs.o \
-#		"$(PPCLibraries)CursorDevicesGlue.o \
-#		"$(SharedLibraries)InputSprocketLib \
-#		"$(SharedLibraries)DrawSprocketLib \
-#		"$(SharedLibraries)DialogsLib \
-#		"$(SharedLibraries)OpenGLLibraryStub"
-#	Rez -a -o "/lib/$@" src/main/macos/SDL.shlib.r"
+SRC_DIST = acinclude autogen.sh BUGS build-scripts configure configure.ac COPYING CREDITS CWprojects.sea.bin docs docs.html include INSTALL Makefile.dc Makefile.minimal Makefile.in MPWmake.sea.bin README* sdl-config.in sdl.m4 sdl.pc.in SDL.qpg.in SDL.spec.in src test TODO VisualCE VisualC.html VisualC os2 Makefile.os2 Watcom-Win32.zip symbian.zip WhatsNew Xcode
+GEN_DIST = SDL.spec
 
-# This is used to build a static library of SDL
-libSDLcarb.a: directories $(_MondoBuild_) $(SDLOBJS) $(ObjDir_PPC)SDL_main.c.o
-	powerpc-apple-macos-ar rcv libSDLcarb.a obj/*.o
-	powerpc-apple-macos-ranlib libSDLcarb.a
-#	m68k-apple-macos-ar rcv libSDLcarb.a obj/*.o
-#	m68k-apple-macos-ranlib libSDLcarb.a
-#	PPCLink \
-#		-o "/lib/$@" $(Sym_PPC) \
-#		$(SDLOBJS) $(ObjDir_PPC)SDL_main.c.o \
-#		"$(PPCLibraries)CursorDevicesGlue.o \
-#		-c '????' \
-#		.om l
+HDRS = SDL.h SDL_active.h SDL_audio.h SDL_byteorder.h SDL_cdrom.h SDL_cpuinfo.h SDL_endian.h SDL_error.h SDL_events.h SDL_getenv.h SDL_joystick.h SDL_keyboard.h SDL_keysym.h SDL_loadso.h SDL_main.h SDL_mouse.h SDL_mutex.h SDL_name.h SDL_opengl.h SDL_platform.h SDL_quit.h SDL_rwops.h SDL_stdinc.h SDL_syswm.h SDL_thread.h SDL_timer.h SDL_types.h SDL_version.h SDL_video.h begin_code.h close_code.h
 
-# This is used to build the static stub library of SDL
-SDLmain.o: $(_MondoBuild_) $(STUBOBJS)
-#	PPCLink \
-#		-o /lib/$@ $(Sym_PPC) \
-#		$(STUBOBJS) \
-#		-c '????' \
-#		.om l
+LT_AGE      = 11
+LT_CURRENT  = 11
+LT_RELEASE  = 1.2
+LT_REVISION = 5
+LT_EXTRA    = 
+LT_LDFLAGS  = -no-undefined -rpath $(libdir) -release $(LT_RELEASE) -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE) $(LT_EXTRA)
 
-# This is used to create the directories needed for build
-directories:
-#	mkdir obj
-#	mkdir lib
+all: $(srcdir)/configure Makefile $(objects)/$(TARGET) $(objects)/$(SDLMAIN_TARGET)
+
+$(srcdir)/configure: $(srcdir)/configure.ac
+	@echo "Warning, configure is out of date, please re-run autogen.sh"
+
+Makefile: $(srcdir)/Makefile.in
+	$(SHELL) config.status $@
+
+$(objects)/.created:
+	$(SHELL) $(auxdir)/mkinstalldirs $(objects)
+	touch $@
+
+.PHONY: all depend install install-bin install-hdrs install-lib install-data install-man uninstall uninstall-bin uninstall-hdrs uninstall-lib uninstall-data uninstall-man clean distclean dist
+depend:
+	@SOURCES="$(SOURCES) $(SDLMAIN_SOURCES)" INCLUDE="$(INCLUDE)" output="$(depend)" \
+	$(SHELL) $(auxdir)/makedep.sh
+
+include $(depend)
+
+$(OBJECTS) $(SDLMAIN_OBJECTS): $(objects)/.created
+
+$(objects)/$(TARGET): $(OBJECTS)
+	$(LIBTOOL) --mode=link $(CC) -o $@ $^ $(LDFLAGS) $(EXTRA_LDFLAGS) $(LT_LDFLAGS)
+
+$(objects)/$(SDLMAIN_TARGET): $(SDLMAIN_OBJECTS)
+	$(LIBTOOL) --mode=link $(CC) -o $@ $^ $(LDFLAGS) $(EXTRA_LDFLAGS) $(LT_LDFLAGS) $(SDLMAIN_LDFLAGS)
+
+
+install: all install-bin install-hdrs install-lib install-data install-man
+install-bin:
+	$(SHELL) $(auxdir)/mkinstalldirs $(DESTDIR)$(bindir)
+	$(INSTALL) -m 755 sdl-config $(DESTDIR)$(bindir)/sdl-config
+install-hdrs:
+	$(SHELL) $(auxdir)/mkinstalldirs $(DESTDIR)$(includedir)/SDL
+	for file in $(HDRS); do \
+	    $(INSTALL) -m 644 $(srcdir)/include/$$file $(DESTDIR)$(includedir)/SDL/$$file; \
+	done
+	$(INSTALL) -m 644 include/SDL_config.h $(DESTDIR)$(includedir)/SDL/SDL_config.h
+install-lib: $(objects)/$(TARGET) $(objects)/$(SDLMAIN_TARGET)
+	$(SHELL) $(auxdir)/mkinstalldirs $(DESTDIR)$(libdir)
+	$(LIBTOOL) --mode=install $(INSTALL) $(objects)/$(TARGET) $(DESTDIR)$(libdir)/$(TARGET)
+	$(LIBTOOL) --mode=install $(INSTALL) $(objects)/$(SDLMAIN_TARGET) $(DESTDIR)$(libdir)/$(SDLMAIN_TARGET)
+install-data:
+	$(SHELL) $(auxdir)/mkinstalldirs $(DESTDIR)$(datadir)/aclocal
+	$(INSTALL) -m 644 $(srcdir)/sdl.m4 $(DESTDIR)$(datadir)/aclocal/sdl.m4
+	$(SHELL) $(auxdir)/mkinstalldirs $(DESTDIR)$(libdir)/pkgconfig
+	$(INSTALL) -m 644 sdl.pc $(DESTDIR)$(libdir)/pkgconfig
+install-man:
+	$(SHELL) $(auxdir)/mkinstalldirs $(DESTDIR)$(mandir)/man3
+	for src in $(srcdir)/docs/man3/*.3; do \
+	    file=`echo $$src | sed -e 's|^.*/||'`; \
+	    $(INSTALL) -m 644 $$src $(DESTDIR)$(mandir)/man3/$$file; \
+	done
+
+uninstall: uninstall-bin uninstall-hdrs uninstall-lib uninstall-data uninstall-man
+uninstall-bin:
+	rm -f $(DESTDIR)$(bindir)/sdl-config
+uninstall-hdrs:
+	for file in $(HDRS); do \
+	    rm -f $(DESTDIR)$(includedir)/SDL/$$file; \
+	done
+	rm -f $(DESTDIR)$(includedir)/SDL/SDL_config.h
+	-rmdir $(DESTDIR)$(includedir)/SDL
+uninstall-lib:
+	$(LIBTOOL) --mode=uninstall rm -f $(DESTDIR)$(libdir)/$(TARGET)
+	$(LIBTOOL) --mode=uninstall rm -f $(DESTDIR)$(libdir)/$(SDLMAIN_TARGET)
+uninstall-data:
+	rm -f $(DESTDIR)$(datadir)/aclocal/sdl.m4
+	rm -f $(DESTDIR)$(libdir)/pkgconfig/sdl.pc
+uninstall-man:
+	for src in $(srcdir)/docs/man3/*.3; do \
+	    file=`echo $$src | sed -e 's|^.*/||'`; \
+	    rm -f $(DESTDIR)$(mandir)/man3/$$file; \
+	done
 
 clean:
-	rm -rf obj/*
-	rm -rf *.a
-
-install:
-	mkdir -p $(PATH_TO_RETRO68)/include/SDL
-	cp include/* $(PATH_TO_RETRO68)/include/SDL
-	cp libSDL*.a $(PATH_TO_RETRO68)/lib
-
-# The SDL library objects
-
-$(ObjDir_PPC)SDL.c.o: $(_MondoBuild_) src/SDL.c
-	$(PPCC) src/SDL.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_error.c.o: $(_MondoBuild_) src/SDL_error.c
-	$(PPCC) src/SDL_error.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_fatal.c.o: $(_MondoBuild_) src/SDL_fatal.c
-	$(PPCC) src/SDL_fatal.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_getenv.c.o: $(_MondoBuild_) src/stdlib/SDL_getenv.c
-	$(PPCC) src/stdlib/SDL_getenv.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_iconv.c.o: $(_MondoBuild_) src/stdlib/SDL_iconv.c
-	$(PPCC) src/stdlib/SDL_iconv.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_malloc.c.o: $(_MondoBuild_) src/stdlib/SDL_malloc.c
-	$(PPCC) src/stdlib/SDL_malloc.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_qsort.c.o: $(_MondoBuild_) src/stdlib/SDL_qsort.c
-	$(PPCC) src/stdlib/SDL_qsort.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_stdlib.c.o: $(_MondoBuild_) src/stdlib/SDL_stdlib.c
-	$(PPCC) src/stdlib/SDL_stdlib.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_string.c.o: $(_MondoBuild_) src/stdlib/SDL_string.c
-	$(PPCC) src/stdlib/SDL_string.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_sysloadso.c.o: $(_MondoBuild_) src/loadso/macos/SDL_sysloadso.c
-	$(PPCC) src/loadso/macos/SDL_sysloadso.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_audio.c.o: $(_MondoBuild_) src/audio/SDL_audio.c
-	$(PPCC) src/audio/SDL_audio.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_dummyaudio.c.o: $(_MondoBuild_) src/audio/SDL_audio.c
-	$(PPCC) src/audio/dummy/SDL_dummyaudio.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_diskaudio.c.o: $(_MondoBuild_) src/audio/SDL_audio.c
-	$(PPCC) src/audio/disk/SDL_diskaudio.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_audiocvt.c.o: $(_MondoBuild_) src/audio/SDL_audiocvt.c
-	$(PPCC) src/audio/SDL_audiocvt.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_mixer.c.o: $(_MondoBuild_) src/audio/SDL_mixer.c
-	$(PPCC) src/audio/SDL_mixer.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_wave.c.o: $(_MondoBuild_) src/audio/SDL_wave.c
-	$(PPCC) src/audio/SDL_wave.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_romaudio.c.o: $(_MondoBuild_) src/audio/macrom/SDL_romaudio.c
-	$(PPCC) src/audio/macrom/SDL_romaudio.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_RLEaccel.c.o: $(_MondoBuild_) src/video/SDL_RLEaccel.c
-	$(PPCC) src/video/SDL_RLEaccel.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_blit.c.o: $(_MondoBuild_) src/video/SDL_blit.c
-	$(PPCC) src/video/SDL_blit.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_blit_0.c.o: $(_MondoBuild_) src/video/SDL_blit_0.c
-	$(PPCC) src/video/SDL_blit_0.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_blit_1.c.o: $(_MondoBuild_) src/video/SDL_blit_1.c
-	$(PPCC) src/video/SDL_blit_1.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_blit_A.c.o: $(_MondoBuild_) src/video/SDL_blit_A.c
-	$(PPCC) src/video/SDL_blit_A.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_blit_N.c.o: $(_MondoBuild_) src/video/SDL_blit_N.c
-	$(PPCC) src/video/SDL_blit_N.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_stretch.c.o: $(_MondoBuild_) src/video/SDL_stretch.c
-	$(PPCC) src/video/SDL_stretch.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_gamma.c.o: $(_MondoBuild_) src/video/SDL_gamma.c
-	$(PPCC) src/video/SDL_gamma.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_bmp.c.o: $(_MondoBuild_) src/video/SDL_bmp.c
-	$(PPCC) src/video/SDL_bmp.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_cursor.c.o: $(_MondoBuild_) src/video/SDL_cursor.c
-	$(PPCC) src/video/SDL_cursor.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_pixels.c.o: $(_MondoBuild_) src/video/SDL_pixels.c
-	$(PPCC) src/video/SDL_pixels.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_surface.c.o: $(_MondoBuild_) src/video/SDL_surface.c
-	$(PPCC) src/video/SDL_surface.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_video.c.o: $(_MondoBuild_) src/video/SDL_video.c
-	$(PPCC) src/video/SDL_video.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_nullevents.c.o: $(_MondoBuild_) src/video/SDL_video.c
-	$(PPCC) src/video/dummy/SDL_nullevents.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_nullmouse.c.o: $(_MondoBuild_) src/video/SDL_video.c
-	$(PPCC) src/video/dummy/SDL_nullmouse.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_nullvideo.c.o: $(_MondoBuild_) src/video/SDL_video.c
-	$(PPCC) src/video/dummy/SDL_nullvideo.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_yuv.c.o: $(_MondoBuild_) src/video/SDL_yuv.c
-	$(PPCC) src/video/SDL_yuv.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_yuv_sw.c.o: $(_MondoBuild_) src/video/SDL_yuv_sw.c
-	$(PPCC) src/video/SDL_yuv_sw.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_macevents.c.o: $(_MondoBuild_) src/video/maccommon/SDL_macevents.c
-	$(PPCC) src/video/maccommon/SDL_macevents.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_macmouse.c.o: $(_MondoBuild_) src/video/maccommon/SDL_macmouse.c
-	$(PPCC) src/video/maccommon/SDL_macmouse.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_dspvideo.c.o: $(_MondoBuild_) src/video/macdsp/SDL_dspvideo.c
-	$(PPCC) src/video/macdsp/SDL_dspvideo.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_romvideo.c.o: $(_MondoBuild_) src/video/macrom/SDL_romvideo.c
-	$(PPCC) src/video/macrom/SDL_romvideo.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_macgl.c.o: $(_MondoBuild_) src/video/maccommon/SDL_macgl.c
-	$(PPCC) src/video/maccommon/SDL_macgl.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_macwm.c.o: $(_MondoBuild_) src/video/maccommon/SDL_macwm.c
-	$(PPCC) src/video/maccommon/SDL_macwm.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_active.c.o: $(_MondoBuild_) src/events/SDL_active.c
-	$(PPCC) src/events/SDL_active.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_events.c.o: $(_MondoBuild_) src/events/SDL_events.c
-	$(PPCC) src/events/SDL_events.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_keyboard.c.o: $(_MondoBuild_) src/events/SDL_keyboard.c
-	$(PPCC) src/events/SDL_keyboard.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_mouse.c.o: $(_MondoBuild_) src/events/SDL_mouse.c
-	$(PPCC) src/events/SDL_mouse.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_resize.c.o: $(_MondoBuild_) src/events/SDL_resize.c
-	$(PPCC) src/events/SDL_resize.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_joystick.c.o: $(_MondoBuild_) src/joystick/SDL_joystick.c
-	$(PPCC) src/joystick/SDL_joystick.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_sysjoystick.c.o: $(_MondoBuild_) src/joystick/macos/SDL_sysjoystick.c
-	$(PPCC) src/joystick/macos/SDL_sysjoystick.c -o $@ $(SDL_CFLAGS)
-
-#$(ObjDir_PPC)SDL_sysjoystick.c.o: $(_MondoBuild_) src/joystick/dummy/SDL_sysjoystick.c
-#	$(PPCC) src/joystick/dummy/SDL_sysjoystick.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_quit.c.o: $(_MondoBuild_) src/events/SDL_quit.c
-	$(PPCC) src/events/SDL_quit.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_cdrom.c.o: $(_MondoBuild_) src/cdrom/SDL_cdrom.c
-	$(PPCC) src/cdrom/SDL_cdrom.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_syscdrom.c.o: $(_MondoBuild_) src/cdrom/macos/SDL_syscdrom.c
-	$(PPCC) src/cdrom/macos/SDL_syscdrom.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_thread.c.o: $(_MondoBuild_) src/thread/SDL_thread.c
-	$(PPCC) src/thread/SDL_thread.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_syscond.c.o: $(_MondoBuild_) src/thread/generic/SDL_syscond.c
-	$(PPCC) src/thread/generic/SDL_syscond.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_sysmutex.c.o: $(_MondoBuild_) src/thread/generic/SDL_sysmutex.c
-	$(PPCC) src/thread/generic/SDL_sysmutex.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_syssem.c.o: $(_MondoBuild_) src/thread/generic/SDL_syssem.c
-	$(PPCC) src/thread/generic/SDL_syssem.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_systhread.c.o: $(_MondoBuild_) src/thread/generic/SDL_systhread.c
-	$(PPCC) src/thread/generic/SDL_systhread.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_timer.c.o: $(_MondoBuild_) src/timer/SDL_timer.c
-	$(PPCC) src/timer/SDL_timer.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_MPWtimer.c.o: $(_MondoBuild_) src/timer/macos/SDL_MPWtimer.c
-	$(PPCC) src/timer/macos/SDL_MPWtimer.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_rwops.c.o: $(_MondoBuild_) src/file/SDL_rwops.c
-	$(PPCC) src/file/SDL_rwops.c -o $@ $(SDL_CFLAGS)
-
-$(ObjDir_PPC)SDL_cpuinfo.c.o: $(_MondoBuild_) src/cpuinfo/SDL_cpuinfo.c
-	$(PPCC) src/cpuinfo/SDL_cpuinfo.c -o $@ $(SDL_CFLAGS)
-
-
-# Objects for the stub library
-
-$(ObjDir_PPC)SDL_main.c.o: $(_MondoBuild_) src/main/macos/SDL_main.c
-	$(PPCC) src/main/macos/SDL_main.c -o $@ $(STUB_CFLAGS)
-
-
-
+	rm -rf $(objects)
+	if test -f test/Makefile; then (cd test; $(MAKE) $@); fi
+
+distclean: clean
+	rm -f Makefile include/SDL_config.h sdl-config
+	rm -f SDL.qpg
+	rm -f config.status config.cache config.log libtool $(depend)
+	rm -rf $(srcdir)/autom4te*
+	rm -rf $(srcdir)/test/autom4te*
+	find $(srcdir) \( \
+	    -name '*~' -o \
+	    -name '*.bak' -o \
+	    -name '*.old' -o \
+	    -name '*.rej' -o \
+	    -name '*.orig' -o \
+	    -name '.#*' \) \
+	    -exec rm -f {} \;
+	cp $(srcdir)/include/SDL_config.h.default $(srcdir)/include/SDL_config.h
+	if test -f test/Makefile; then (cd test; $(MAKE) $@); fi
+
+dist $(distfile):
+	$(SHELL) $(auxdir)/mkinstalldirs $(distdir)
+	(cd $(srcdir); tar cf - $(SRC_DIST)) | (cd $(distdir); tar xf -)
+	tar cf - $(GEN_DIST) | (cd $(distdir); tar xf -)
+	cp $(distdir)/include/SDL_config.h.default $(distdir)/include/SDL_config.h
+	rm -rf $(distdir)/test/autom4te*
+	find $(distdir) \( \
+	    -name '*~' -o \
+	    -name '*.bak' -o \
+	    -name '*.old' -o \
+	    -name '*.rej' -o \
+	    -name '*.orig' -o \
+	    -name '.#*' \) \
+	    -exec rm -f {} \;
+	if test -f $(distdir)/test/Makefile; then (cd $(distdir)/test && make distclean); fi
+	tar cvf - $(distdir) | gzip --best >$(distfile)
+	rm -rf $(distdir)
+
+rpm: $(distfile)
+	rpmbuild -ta $?
+
+# Create a Git snapshot that people can run update on
+snapshot:
+	git clone https://github.com/libsdl-org/SDL-1.2.git
+	(cd SDL-1.2 && ./autogen.sh && rm -rf autom4te.cache)
+	cp SDL-1.2/include/SDL_config.h.default SDL-1.2/include/SDL_config.h
+	tar zcf $(HOME)/SDL-1.2.tar.gz SDL-1.2
+	rm -f $(HOME)/SDL-1.2.zip
+	zip -r $(HOME)/SDL-1.2.zip SDL-1.2
+	rm -rf SDL-1.2
